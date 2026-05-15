@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aidat Yönetim Sistemi</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0; --surface: #ffffff; --surface2: #f0efe9; --border: #e2e0d8; --border2: #d0cec4;
+  --text: #1a1916; --text2: #6b6a62; --text3: #9b9a92; --green: #2d7a4f; --green-bg: #eaf4ee;
+  --green-border: #b8dfc7; --red: #c0392b; --red-bg: #fdf0ee; --red-border: #f0c0ba;
+  --amber: #c07a10; --amber-bg: #fdf5e6; --amber-border: #f0d090; --blue: #2060b0;
+  --blue-bg: #eaf0fb; --blue-border: #b0c8f0; --accent: #1a4fa0; --radius: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; min-height: 100vh; }
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+.main { flex: 1; overflow-y: auto; }
+.sidebar-logo { padding: 20px 18px; border-bottom: 1px solid var(--border); }
+.sidebar-logo h1 { font-size: 15px; font-weight: 600; }
+.sidebar-nav { padding: 10px; flex: 1; }
+.nav-item { display: flex; align-items: center; gap: 9px; padding: 10px; border-radius: 7px; cursor: pointer; color: var(--text2); border: none; background: none; width: 100%; text-align: left; margin-bottom: 2px; }
+.nav-item:hover { background: var(--surface2); }
+.nav-item.active { background: var(--accent); color: #fff; }
+.content { padding: 28px 32px; max-width: 1100px; }
+.page { display: none; }
+.page.active { display: block; }
+.page-header { margin-bottom: 24px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border2); }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+.stat-card .value { font-size: 24px; font-weight: 600; font-family: 'DM Mono'; margin-top: 5px; }
+.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+th { padding: 12px; text-align: left; font-size: 11px; background: var(--surface2); color: var(--text3); text-transform: uppercase; }
+td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.badge { padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: 600; }
+.badge-green { background: var(--green-bg); color: var(--green); }
+.badge-red { background: var(--red-bg); color: var(--red); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 100; }
+.modal-overlay.open { display: flex; }
+.modal { background: #fff; padding: 24px; border-radius: 12px; width: 400px; }
+.form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 5px; }
+.form-group input, .form-group select { padding: 8px; border: 1px solid var(--border2); border-radius: 6px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><h1>Dernek Yönetimi</h1></div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="showPage('dashboard', this)">📊 Dashboard</button>
+      <button class="nav-item" onclick="showPage('members', this)">👥 Üyeler</button>
+      <button class="nav-item" onclick="showPage('payments', this)">💳 Ödemeler</button>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="content">
+      <!-- Dashboard -->
+      <div id="page-dashboard" class="page active">
+        <div class="page-header"><h2>Genel Durum</h2></div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="label">Toplam Üye</div><div class="value" id="stat-total">0</div></div>
+          <div class="stat-card" style="color:var(--green)"><div class="label">Toplam Tahsilat</div><div class="value" id="stat-money">₺0</div></div>
+          <div class="stat-card" style="color:var(--red)"><div class="label">Bekleyen Borç</div><div class="value" id="stat-debt">₺0</div></div>
+        </div>
+      </div>
+
+      <!-- Üyeler -->
+      <div id="page-members" class="page">
+        <div class="page-header">
+            <h2>Üye Listesi</h2>
+            <button class="btn btn-primary" onclick="openModal('add-member-modal')" style="margin-top:10px">+ Yeni Üye Ekle</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Üye Adı</th><th>Telefon</th><th>Borç</th><th>İşlem</th></tr></thead>
+            <tbody id="members-list"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Ödemeler -->
+      <div id="page-payments" class="page">
+        <div class="page-header">
+            <h2>Ödeme Geçmişi</h2>
+            <button class="btn btn-primary" onclick="openModal('add-payment-modal')" style="margin-top:10px">+ Ödeme Al</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Üye</th><th>Tutar</th><th>Tarih</th></tr></thead>
+            <tbody id="payments-list"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal: Üye Ekle -->
+<div class="modal-overlay" id="add-member-modal">
+  <div class="modal">
+    <h3>Yeni Üye</h3><br>
+    <div class="form-group"><label>Ad Soyad</label><input type="text" id="m-name"></div>
+    <div class="form-group"><label>Telefon</label><input type="text" id="m-phone"></div>
+    <div class="form-group"><label>Aylık Aidat (₺)</label><input type="number" id="m-fee" value="500"></div>
+    <button class="btn btn-primary" onclick="addMember()">Kaydet</button>
+    <button class="btn" onclick="closeModal('add-member-modal')">İptal</button>
+  </div>
+</div>
+
+<!-- Modal: Ödeme Al -->
+<div class="modal-overlay" id="add-payment-modal">
+  <div class="modal">
+    <h3>Ödeme Kaydet</h3><br>
+    <div class="form-group"><label>Üye Seçin</label><select id="p-member"></select></div>
+    <div class="form-group"><label>Tutar (₺)</label><input type="number" id="p-amount" value="500"></div>
+    <button class="btn btn-primary" onclick="addPayment()">Ödemeyi Onayla</button>
+    <button class="btn" onclick="closeModal('add-payment-modal')">İptal</button>
+  </div>
+</div>
+
+<script>
+let members = JSON.parse(localStorage.getItem('my_members')) || [];
+let payments = JSON.parse(localStorage.getItem('my_payments')) || [];
+
+function saveData() {
+    localStorage.setItem('my_members', JSON.stringify(members));
+    localStorage.setItem('my_payments', JSON.stringify(payments));
+    renderAll();
+}
+
+function showPage(id, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    btn.classList.add('active');
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function addMember() {
+    const name = document.getElementById('m-name').value;
+    const phone = document.getElementById('m-phone').value;
+    const fee = document.getElementById('m-fee').value;
+    if(!name) return alert("İsim yazın");
+    members.push({ id: Date.now(), name, phone, fee: Number(fee), debt: Number(fee) });
+    saveData();
+    closeModal('add-member-modal');
+}
+
+function addPayment() {
+    const mid = document.getElementById('p-member').value;
+    const amount = document.getElementById('p-amount').value;
+    const member = members.find(m => m.id == mid);
+    if(!member) return;
+    member.debt -= Number(amount);
+    payments.push({ id: Date.now(), memberName: member.name, amount: Number(amount), date: new Date().toLocaleDateString() });
+    saveData();
+    closeModal('add-payment-modal');
+}
+
+function deleteMember(id) {
+    if(confirm('Üyeyi silmek istediğinize emin misiniz?')) {
+        members = members.filter(m => m.id != id);
+        saveData();
+    }
+}
+
+function renderAll() {
+    // Stats
+    document.getElementById('stat-total').textContent = members.length;
+    let totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+    let totalDebt = members.reduce((sum, m) => sum + m.debt, 0);
+    document.getElementById('stat-money').textContent = '₺' + totalPaid;
+    document.getElementById('stat-debt').textContent = '₺' + totalDebt;
+
+    // Members List
+    const mList = document.getElementById('members-list');
+    mList.innerHTML = members.map(m => `
+        <tr>
+            <td><strong>${m.name}</strong></td>
+            <td>${m.phone}</td>
+            <td style="color:${m.debt > 0 ? 'red' : 'green'}">₺${m.debt}</td>
+            <td><button class="btn" onclick="deleteMember(${m.id})">🗑️</button></td>
+        </tr>
+    `).join('');
+
+    // Payments List
+    const pList = document.getElementById('payments-list');
+    pList.innerHTML = payments.map(p => `
+        <tr><td>${p.memberName}</td><td>₺${p.amount}</td><td>${p.date}</td></tr>
+    `).join('');
+
+    // Payment Select
+    const pSelect = document.getElementById('p-member');
+    pSelect.innerHTML = members.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+}
+
+// İlk açılışta çalıştır
+renderAll();
+</script>
+</body>
+</html>
