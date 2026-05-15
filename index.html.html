@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aidat Yönetim Sistemi</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --surface2: #f0efe9;
+  --border: #e2e0d8;
+  --border2: #d0cec4;
+  --text: #1a1916;
+  --text2: #6b6a62;
+  --text3: #9b9a92;
+  --green: #2d7a4f;
+  --green-bg: #eaf4ee;
+  --green-border: #b8dfc7;
+  --red: #c0392b;
+  --red-bg: #fdf0ee;
+  --red-border: #f0c0ba;
+  --amber: #c07a10;
+  --amber-bg: #fdf5e6;
+  --amber-border: #f0d090;
+  --blue: #2060b0;
+  --blue-bg: #eaf0fb;
+  --blue-border: #b0c8f0;
+  --accent: #1a4fa0;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; min-height: 100vh; }
+
+/* Layout */
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; background: var(--surface); border-right: 1px solid var(--border); padding: 0; display: flex; flex-direction: column; flex-shrink: 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.main { flex: 1; overflow-y: auto; }
+
+/* Sidebar */
+.sidebar-logo { padding: 20px 18px 16px; border-bottom: 1px solid var(--border); }
+.sidebar-logo h1 { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.3; }
+.sidebar-logo p { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.sidebar-nav { padding: 10px 10px; flex: 1; }
+.nav-group { margin-bottom: 2px; }
+.nav-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 8px 4px; }
+.nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px; cursor: pointer; color: var(--text2); font-size: 13px; font-weight: 400; transition: all 0.15s; border: none; background: none; width: 100%; text-align: left; }
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: var(--accent); color: #fff; font-weight: 500; }
+.nav-item .icon { width: 18px; text-align: center; font-size: 15px; flex-shrink: 0; }
+.nav-item .badge { margin-left: auto; background: var(--red); color: #fff; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 10px; min-width: 18px; text-align: center; }
+.nav-item.active .badge { background: rgba(255,255,255,0.3); }
+.sidebar-bottom { padding: 12px 10px; border-top: 1px solid var(--border); }
+.sidebar-user { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px; }
+.avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+.sidebar-user-info p { font-size: 12px; font-weight: 500; }
+.sidebar-user-info span { font-size: 11px; color: var(--text3); }
+
+/* Content */
+.content { padding: 28px 32px; max-width: 1100px; }
+.page { display: none; }
+.page.active { display: block; }
+.page-header { margin-bottom: 24px; }
+.page-header h2 { font-size: 22px; font-weight: 600; color: var(--text); }
+.page-header p { font-size: 14px; color: var(--text2); margin-top: 4px; }
+.page-actions { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; font-family: inherit; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #1545a0; }
+.btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border2); }
+.btn-secondary:hover { background: var(--surface2); }
+.btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.btn-danger:hover { background: #fce4e0; }
+.btn-success { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* Cards & Grid */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+.stat-card .label { font-size: 12px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-card .value { font-size: 28px; font-weight: 600; margin: 6px 0 2px; color: var(--text); font-family: 'DM Mono', monospace; }
+.stat-card .sub { font-size: 12px; color: var(--text3); }
+.stat-card.green .value { color: var(--green); }
+.stat-card.red .value { color: var(--red); }
+.stat-card.amber .value { color: var(--amber); }
+
+/* Table */
+.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.table-toolbar { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.table-toolbar input { flex: 1; padding: 7px 12px; border: 1px solid var(--border2); border-radius: 6px; font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text); }
+.table-toolbar input:focus { outline: none; border-color: var(--accent); }
+table { width: 100%; border-collapse: collapse; }
+th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; background: var(--surface2); border-bottom: 1px solid var(--border); }
+td { padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+
+/* Badges */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: 600; }
+.badge-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.badge-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.badge-amber { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.badge-gray { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+
+/* Forms */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group label { font-size: 12px; font-weight: 500; color: var(--text2); }
+.form-group input, .form-group select, .form-group textarea { padding: 8px 11px; border: 1px solid var(--border2); border-radius: 6px; font-size: 13px; font-family: inherit; background: var(--surface); color: var(--text); transition: border 0.15s; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); }
+.form-group.full { grid-column: 1/-1; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: none; align-items: center; justify-content: center; z-index: 1000; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: 14px; width: 540px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden; }
+.modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+.modal-body { padding: 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+.close-btn { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 20px; line-height: 1; padding: 2px; }
+.close-btn:hover { color: var(--text); }
+
+/* Upload Zone */
+.upload-zone { border: 2px dashed var(--border2); border-radius: var(--radius); padding: 40px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--surface); }
+.upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: var(--blue-bg); }
+.upload-zone .icon { font-size: 32px; margin-bottom: 12px; }
+.upload-zone p { color: var(--text2); font-size: 14px; }
+.upload-zone span { color: var(--text3); font-size: 12px; }
+
+/* Progress bars */
+.progress-bar { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width 0.5s; }
+.progress-fill.green { background: var(--green); }
+.progress-fill.red { background: var(--red); }
+
+/* Charts */
+.chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.chart-card h4 { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 16px; }
+
+/* Month bars */
+.month-bars { display: flex; gap: 6px; align-items: flex-end; height: 120px; }
+.month-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+.month-bar { width: 100%; border-radius: 4px 4px 0 0; background: var(--accent); opacity: 0.85; cursor: pointer; transition: opacity 0.15s; }
+.month-bar:hover { opacity: 1; }
+.month-label { font-size: 10px; color: var(--text3); }
+
+/* Pie chart */
+.pie-wrap { display: flex; align-items: center; gap: 20px; }
+.pie-legend { display: flex; flex-direction: column; gap: 8px; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* Notification list */
+.notif-item { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px; }
+.notif-item:last-child { border-bottom: none; }
+.notif-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.tab { padding: 10px 16px; font-size: 13px; font-weight: 500; color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* Alert */
+.alert { padding: 12px 16px; border-radius: 8px; font-size: 13px; display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+.alert-info { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.alert-success { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.alert-warn { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { width: 60px; }
+  .nav-item span, .nav-item .badge, .sidebar-logo p, .sidebar-logo h1, .sidebar-user-info { display: none; }
+  .content { padding: 16px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .chart-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h1>Dernek Aidat</h1>
+      <p>Yönetim Sistemi v2.0</p>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group">
+        <div class="nav-label">Genel</div>
+        <button class="nav-item active" onclick="showPage('dashboard',this)">
+          <span class="icon">📊</span><span>Dashboard</span>
+        </button>
+        <button class="nav-item" onclick="showPage('members',this)">
+          <span class="icon">👥</span><span>Üyeler</span>
+        </button>
+        <button class="nav-item" onclick="showPage('payments',this)">
+          <span class="icon">💳</span><span>Ödemeler</span>
+        </button>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">İşlemler</div>
+        <button class="nav-item" onclick="showPage('bank',this)">
+          <span class="icon">🏦</span><span>Banka Ekstresi</span>
+        </button>
+        <button class="nav-item" onclick="showPage('notifications',this)">
+          <span class="icon">🔔</span><span>Bildirimler</span>
+          <span class="badge" id="notif-badge">5</span>
+        </button>
+        <button class="nav-item" onclick="showPage('reports',this)">
+          <span class="icon">📈</span><span>Raporlar</span>
+        </button>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Sistem</div>
+        <button class="nav-item" onclick="showPage('settings',this)">
+          <span class="icon">⚙️</span><span>Ayarlar</span>
+        </button>
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-user">
+        <div class="avatar">AY</div>
+        <div class="sidebar-user-info">
+          <p>Ahmet Yılmaz</p>
+          <span>Admin</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="page active">
+        <div class="page-header">
+          <h2>Dashboard</h2>
+          <p>Mayıs 2025 — Güncel aidat durumu</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="label">Toplam Üye</div>
+            <div class="value">94</div>
+            <div class="sub">↑ 3 yeni bu ay</div>
+          </div>
+          <div class="stat-card green">
+            <div class="label">Ödeyen</div>
+            <div class="value" id="stat-paid">71</div>
+            <div class="sub">%75.5 ödeme oranı</div>
+          </div>
+          <div class="stat-card red">
+            <div class="label">Ödemeyen</div>
+            <div class="value" id="stat-unpaid">23</div>
+            <div class="sub">Bildirim bekliyor</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="label">Tahsilat</div>
+            <div class="value">₺35.5K</div>
+            <div class="sub">Hedef: ₺47K</div>
+          </div>
+        </div>
+
+        <div class="chart-row">
+          <div class="chart-card">
+            <h4>Aylık Tahsilat (₺)</h4>
+            <div class="month-bars" id="monthly-chart"></div>
+          </div>
+          <div class="chart-card">
+            <h4>Ödeme Dağılımı</h4>
+            <div class="pie-wrap">
+              <svg width="110" height="110" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e2e0d8" stroke-width="3.6"/>
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2d7a4f" stroke-width="3.6" stroke-dasharray="75.5 24.5" stroke-dashoffset="25" transform="rotate(-90 18 18)"/>
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#c07a10" stroke-width="3.6" stroke-dasharray="12 88" stroke-dashoffset="-50.5" transform="rotate(-90 18 18)"/>
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#c0392b" stroke-width="3.6" stroke-dasharray="12.5 87.5" stroke-dashoffset="-62.5" transform="rotate(-90 18 18)"/>
+                <text x="18" y="20" text-anchor="middle" font-size="6" fill="#1a1916" font-family="DM Mono">75%</text>
+              </svg>
+              <div class="pie-legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#2d7a4f"></div>Ödendi (71)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#c07a10"></div>Kısmi (11)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#c0392b"></div>Ödenmedi (12)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <strong style="font-size:13px">Son İşlemler</strong>
+            <div style="margin-left:auto;display:flex;gap:8px">
+              <button class="btn btn-secondary btn-sm" onclick="showPage('payments',document.querySelector('[onclick*=payments]'))">Tümünü Gör</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Üye</th><th>Tutar</th><th>Ay</th><th>Kanal</th><th>Tarih</th><th>Durum</th></tr></thead>
+            <tbody id="recent-payments"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MEMBERS -->
+      <div id="page-members" class="page">
+        <div class="page-header">
+          <h2>Üye Yönetimi</h2>
+          <p>Tüm üyeleri görüntüle, ekle ve yönet</p>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openModal('add-member-modal')">+ Yeni Üye Ekle</button>
+            <button class="btn btn-secondary" onclick="exportMembers()">📥 Excel'e Aktar</button>
+            <button class="btn btn-secondary" onclick="syncGoogleSheets()">🔄 Google Sheets Sync</button>
+          </div>
+        </div>
+
+        <div class="alert alert-info">
+          <span>ℹ️</span>
+          <span>Google Sheets entegrasyonu aktif. Son senkronizasyon: <strong>bugün 09:42</strong> — <a href="#" style="color:var(--blue)">bağlantıyı ayarla</a></span>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <input type="text" placeholder="Üye ara... (ad, numara, e-posta)" id="member-search" oninput="filterMembers(this.value)">
+            <select onchange="filterByStatus(this.value)" style="padding:7px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text)">
+              <option value="">Tüm Durumlar</option>
+              <option value="paid">Ödedi</option>
+              <option value="partial">Kısmi</option>
+              <option value="unpaid">Ödemedi</option>
+            </select>
+          </div>
+          <table>
+            <thead><tr><th>#</th><th>Üye Adı</th><th>Telefon</th><th>E-posta</th><th>Aidat</th><th>Mayıs 2025</th><th>Toplam Borç</th><th>İşlem</th></tr></thead>
+            <tbody id="members-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PAYMENTS -->
+      <div id="page-payments" class="page">
+        <div class="page-header">
+          <h2>Ödemeler</h2>
+          <p>Tüm aidat ödemeleri ve işlem geçmişi</p>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openModal('add-payment-modal')">+ Manuel Ödeme Ekle</button>
+            <button class="btn btn-secondary">📥 Dışa Aktar</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <input type="text" placeholder="Ödeme ara...">
+            <select style="padding:7px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--text)">
+              <option>Tüm Aylar</option>
+              <option>Mayıs 2025</option>
+              <option>Nisan 2025</option>
+              <option>Mart 2025</option>
+            </select>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Üye</th><th>Tutar</th><th>Dönem</th><th>Ödeme Kanalı</th><th>Banka Referansı</th><th>Tarih</th><th>Durum</th></tr></thead>
+            <tbody id="payments-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- BANK IMPORT -->
+      <div id="page-bank" class="page">
+        <div class="page-header">
+          <h2>Banka Ekstresi İçe Aktarma</h2>
+          <p>Bankanızdan indirdiğiniz CSV veya Excel dosyasını yükleyin</p>
+        </div>
+
+        <div class="alert alert-warn">
+          <span>⚠️</span>
+          <span>Bankadan "hesap hareketi" veya "ekstre" indirin. Garanti, İş Bankası, Ziraat, Yapı Kredi ve Akbank formatları desteklenmektedir.</span>
+        </div>
+
+        <div class="tabs" id="bank-tabs">
+          <div class="tab active" onclick="switchBankTab('upload',this)">Dosya Yükle</div>
+          <div class="tab" onclick="switchBankTab('history',this)">Yükleme Geçmişi</div>
+          <div class="tab" onclick="switchBankTab('mapping',this)">Sütun Eşleştirme</div>
+        </div>
+
+        <div id="bank-upload">
+          <div class="upload-zone" id="drop-zone" onclick="document.getElementById('csv-input').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+            <div class="icon">📄</div>
+            <p>CSV veya Excel dosyasını buraya sürükleyin</p>
+            <span>veya tıklayarak seçin — .csv, .xlsx, .xls desteklenir</span>
+            <input type="file" id="csv-input" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleFileSelect(this)">
+          </div>
+
+          <div id="import-preview" style="display:none;margin-top:20px">
+            <div class="alert alert-success">
+              <span>✅</span>
+              <span id="import-summary">Dosya yüklendi.</span>
+            </div>
+            <div class="table-wrap">
+              <div class="table-toolbar"><strong style="font-size:13px">Önizleme — İlk 10 Satır</strong></div>
+              <div style="overflow-x:auto">
+                <table id="preview-table" style="min-width:600px"></table>
+              </div>
+            </div>
+            <div style="margin-top:14px;display:flex;gap:10px">
+              <button class="btn btn-primary" onclick="processImport()">✓ Eşleştir ve İçe Aktar</button>
+              <button class="btn btn-secondary" onclick="cancelImport()">İptal</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="bank-history" style="display:none">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Dosya</th><th>Banka</th><th>Tarih</th><th>Kayıt Sayısı</th><th>Eşleşen</th><th>Durum</th></tr></thead>
+              <tbody id="import-history-table"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="bank-mapping" style="display:none">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
+            <h4 style="margin-bottom:16px;font-size:14px">Sütun Eşleştirme Şablonu</h4>
+            <div class="form-grid">
+              <div class="form-group"><label>Tarih Sütunu</label><select><option>Tarih</option><option>İşlem Tarihi</option><option>Valör</option></select></div>
+              <div class="form-group"><label>Açıklama Sütunu</label><select><option>Açıklama</option><option>İşlem Açıklaması</option><option>Karşı Hesap Adı</option></select></div>
+              <div class="form-group"><label>Tutar Sütunu</label><select><option>Tutar</option><option>Alacak</option><option>Borç/Alacak</option></select></div>
+              <div class="form-group"><label>Referans Sütunu</label><select><option>Referans No</option><option>Dekont No</option><option>İşlem No</option></select></div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:16px">Kaydet</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTIFICATIONS -->
+      <div id="page-notifications" class="page">
+        <div class="page-header">
+          <h2>Bildirim Merkezi</h2>
+          <p>Ödemeyen üyelere otomatik veya manuel bildirim gönder</p>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="sendBulkNotification()">📨 Toplu Bildirim Gönder</button>
+            <button class="btn btn-secondary" onclick="openModal('notif-template-modal')">✏️ Şablon Düzenle</button>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat-card">
+            <div class="label">Bekleyen</div>
+            <div class="value red" style="font-size:24px">23</div>
+            <div class="sub">Bildirim gönderilecek</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Bu Ay Gönderilen</div>
+            <div class="value" style="font-size:24px">18</div>
+            <div class="sub">E-posta + SMS</div>
+          </div>
+          <div class="stat-card green">
+            <div class="label">Yanıt Oranı</div>
+            <div class="value green" style="font-size:24px">%64</div>
+            <div class="sub">Bildirim sonrası ödeme</div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <strong style="font-size:13px">Bildirim Bekleyen Üyeler</strong>
+            <div style="margin-left:auto">
+              <select style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:13px;background:var(--surface)">
+                <option>E-posta ile Gönder</option>
+                <option>SMS ile Gönder</option>
+                <option>WhatsApp ile Gönder</option>
+              </select>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th><input type="checkbox" id="select-all" onchange="toggleAll(this)"></th><th>Üye</th><th>Gecikme</th><th>Borç Tutarı</th><th>Son Bildirim</th><th>E-posta</th><th>İşlem</th></tr></thead>
+            <tbody id="notif-table"></tbody>
+          </table>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-top:20px">
+          <h4 style="font-size:13px;font-weight:600;margin-bottom:14px">Otomatik Bildirim Kuralları</h4>
+          <div style="display:flex;flex-direction:column;gap:10px" id="auto-rules"></div>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div id="page-reports" class="page">
+        <div class="page-header">
+          <h2>Raporlar ve Analizler</h2>
+          <p>Aidat tahsilatı, üye istatistikleri ve trend analizleri</p>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="exportPDF()">📄 PDF Raporu İndir</button>
+            <button class="btn btn-secondary">📊 Excel'e Aktar</button>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="label">Yıllık Hedef</div>
+            <div class="value">₺94K</div>
+            <div class="sub">94 üye × ₺1.000/yıl</div>
+          </div>
+          <div class="stat-card green">
+            <div class="label">Tahsil Edilen</div>
+            <div class="value green">₺35.5K</div>
+            <div class="sub">%37.8 gerçekleşme</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="label">Kalan</div>
+            <div class="value amber">₺58.5K</div>
+            <div class="sub">8 ay kaldı</div>
+          </div>
+          <div class="stat-card red">
+            <div class="label">Gecikmiş</div>
+            <div class="value red">₺11.5K</div>
+            <div class="sub">12 üye, 1+ ay</div>
+          </div>
+        </div>
+
+        <div class="chart-card" style="margin-bottom:20px">
+          <h4>Aylık Tahsilat Trendi (2025)</h4>
+          <div id="report-chart" style="display:flex;align-items:flex-end;gap:4px;height:140px;margin-top:16px"></div>
+          <div id="report-labels" style="display:flex;gap:4px;margin-top:6px"></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="table-wrap">
+            <div class="table-toolbar"><strong style="font-size:13px">Ödeme Gecikmesi Analizi</strong></div>
+            <table>
+              <thead><tr><th>Gecikme</th><th>Üye Sayısı</th><th>Tutar</th></tr></thead>
+              <tbody>
+                <tr><td><span class="badge badge-amber">1 ay</span></td><td>8</td><td>₺4.000</td></tr>
+                <tr><td><span class="badge badge-red">2–3 ay</span></td><td>3</td><td>₺4.500</td></tr>
+                <tr><td><span class="badge badge-red">3+ ay</span></td><td>1</td><td>₺3.000</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-wrap">
+            <div class="table-toolbar"><strong style="font-size:13px">Ödeme Kanalı Dağılımı</strong></div>
+            <table>
+              <thead><tr><th>Kanal</th><th>Adet</th><th>Oran</th></tr></thead>
+              <tbody>
+                <tr><td>Banka Havalesi</td><td>45</td><td><div class="progress-bar"><div class="progress-fill green" style="width:63%"></div></div></td></tr>
+                <tr><td>Nakit</td><td>18</td><td><div class="progress-bar"><div class="progress-fill" style="width:25%"></div></div></td></tr>
+                <tr><td>EFT</td><td>8</td><td><div class="progress-bar"><div class="progress-fill" style="width:11%"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="page-settings" class="page">
+        <div class="page-header">
+          <h2>Sistem Ayarları</h2>
+          <p>Dernek bilgileri, Google Sheets bağlantısı ve bildirim yapılandırması</p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
+            <h4 style="font-size:14px;font-weight:600;margin-bottom:16px">🏛️ Dernek Bilgileri</h4>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="form-group"><label>Dernek Adı</label><input type="text" value="Örnek Derneği"></div>
+              <div class="form-group"><label>Aylık Aidat Tutarı (₺)</label><input type="number" value="500"></div>
+              <div class="form-group"><label>Aidat Ödeme Günü</label><input type="number" value="1" min="1" max="31"></div>
+              <div class="form-group"><label>Hesap No (IBAN)</label><input type="text" placeholder="TR00 0000 0000 0000 0000 0000 00"></div>
+              <button class="btn btn-primary">Kaydet</button>
+            </div>
+          </div>
+
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
+            <h4 style="font-size:14px;font-weight:600;margin-bottom:16px">📊 Google Sheets Bağlantısı</h4>
+            <div class="alert alert-success"><span>✅</span><span>Google Sheets bağlı ve aktif</span></div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="form-group"><label>Sheets URL</label><input type="text" value="https://docs.google.com/spreadsheets/d/..."></div>
+              <div class="form-group"><label>Senkronizasyon Sıklığı</label>
+                <select>
+                  <option>Her 30 dakikada bir</option>
+                  <option>Her saat</option>
+                  <option>Günlük</option>
+                  <option>Manuel</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-success btn-sm">🔄 Şimdi Sync</button>
+                <button class="btn btn-secondary btn-sm">Bağlantıyı Kes</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
+            <h4 style="font-size:14px;font-weight:600;margin-bottom:16px">📧 E-posta Bildirimi</h4>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="form-group"><label>SMTP Sunucusu</label><input type="text" placeholder="smtp.gmail.com"></div>
+              <div class="form-group"><label>Port</label><input type="number" value="587"></div>
+              <div class="form-group"><label>E-posta</label><input type="email" placeholder="dernek@gmail.com"></div>
+              <div class="form-group"><label>Şifre / App Token</label><input type="password" placeholder="••••••••"></div>
+              <button class="btn btn-secondary">Test E-postası Gönder</button>
+            </div>
+          </div>
+
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
+            <h4 style="font-size:14px;font-weight:600;margin-bottom:16px">📱 WhatsApp / SMS</h4>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="form-group"><label>Servis Sağlayıcı</label>
+                <select>
+                  <option>Twilio</option>
+                  <option>Netgsm (Türkiye)</option>
+                  <option>İleti Hub</option>
+                  <option>WhatsApp Business API</option>
+                </select>
+              </div>
+              <div class="form-group"><label>API Key</label><input type="text" placeholder="sk_..."></div>
+              <div class="form-group"><label>Gönderici No</label><input type="text" placeholder="+905xxxxxxxxx"></div>
+              <div class="alert alert-info" style="margin:0"><span>ℹ️</span><span>Netgsm ve İleti Hub Türkiye SMS için önerilir.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- content -->
+  </main>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="add-member-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Yeni Üye Ekle</h3>
+      <button class="close-btn" onclick="closeModal('add-member-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Ad Soyad *</label><input type="text" placeholder="Ahmet Yılmaz" id="new-name"></div>
+        <div class="form-group"><label>Üye No</label><input type="text" placeholder="Otomatik" id="new-no"></div>
+        <div class="form-group"><label>Telefon</label><input type="text" placeholder="+90 5xx xxx xx xx" id="new-phone"></div>
+        <div class="form-group"><label>E-posta</label><input type="email" placeholder="ornek@mail.com" id="new-email"></div>
+        <div class="form-group"><label>Aylık Aidat (₺)</label><input type="number" value="500" id="new-fee"></div>
+        <div class="form-group"><label>Kayıt Tarihi</label><input type="date" id="new-date"></div>
+        <div class="form-group full"><label>Not</label><textarea rows="2" placeholder="İsteğe bağlı not..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('add-member-modal')">İptal</button>
+      <button class="btn btn-primary" onclick="addMember()">Üye Ekle</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="add-payment-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Manuel Ödeme Ekle</h3>
+      <button class="close-btn" onclick="closeModal('add-payment-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>Üye</label>
+          <select id="pay-member"><option value="">Üye seçin...</option></select>
+        </div>
+        <div class="form-group"><label>Tutar (₺)</label><input type="number" value="500" id="pay-amount"></div>
+        <div class="form-group"><label>Dönem</label>
+          <select id="pay-period"><option>Mayıs 2025</option><option>Nisan 2025</option><option>Mart 2025</option></select>
+        </div>
+        <div class="form-group"><label>Ödeme Kanalı</label>
+          <select id="pay-channel"><option>Havale/EFT</option><option>Nakit</option><option>Kredi Kartı</option></select>
+        </div>
+        <div class="form-group"><label>Tarih</label><input type="date" id="pay-date"></div>
+        <div class="form-group full"><label>Banka Referans No</label><input type="text" placeholder="İsteğe bağlı" id="pay-ref"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('add-payment-modal')">İptal</button>
+      <button class="btn btn-primary" onclick="addPayment()">Ödeme Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="notif-template-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Bildirim Şablonu</h3>
+      <button class="close-btn" onclick="closeModal('notif-template-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:12px"><label>Konu</label>
+        <input type="text" value="Aidat Ödeme Hatırlatması — {{ay}}">
+      </div>
+      <div class="form-group"><label>Mesaj İçeriği</label>
+        <textarea rows="7" style="width:100%;resize:vertical">Sayın {{ad_soyad}},
+
+{{ay}} ayı aidat ödemenizin ({{tutar}} ₺) gerçekleşmediğini hatırlatmak isteriz.
+
+Lütfen en kısa sürede aşağıdaki hesaba ödeme yapınız:
+IBAN: {{iban}}
+Açıklama: {{uye_no}} – {{ay}} Aidat
+
+İyi günler,
+{{dernek_adi}}</textarea>
+      </div>
+      <p style="font-size:11px;color:var(--text3);margin-top:8px">Değişkenler: {{ad_soyad}}, {{ay}}, {{tutar}}, {{uye_no}}, {{iban}}, {{dernek_adi}}</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('notif-template-modal')">İptal</button>
+      <button class="btn btn-primary">Şablonu Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="member-detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="detail-name">Üye Detayı</h3>
+      <button class="close-btn" onclick="closeModal('member-detail-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="closeModal('member-detail-modal')">Üyeyi Sil</button>
+      <button class="btn btn-primary" onclick="closeModal('member-detail-modal')">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// SAMPLE DATA
+// ═══════════════════════════════════════════════════
+const MONTHS = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+const FIRST_NAMES = ['Ahmet','Mehmet','Ayşe','Fatma','Ali','Hasan','Zeynep','Emine','Mustafa','Elif','İbrahim','Hatice','Ömer','Meryem','Yusuf','Halime','Hüseyin','Zehra','İsmail','Güneş'];
+const LAST_NAMES = ['Yılmaz','Kaya','Demir','Şahin','Çelik','Öztürk','Arslan','Doğan','Kılıç','Aslan','Çetin','Yıldız','Erdoğan','Kurt','Özdemir','Aydın','Bulut','Güneş','Koç','Yıldırım'];
+const CHANNELS = ['Havale/EFT','Nakit','Havale/EFT','Havale/EFT','Nakit','EFT','Havale/EFT'];
+const STATUSES = ['paid','paid','paid','paid','paid','partial','unpaid'];
+
+let members = [];
+let payments = [];
+let importHistory = [
+  {file:'garanti_mayis.csv', bank:'Garanti Bankası', date:'10.05.2025', count:87, matched:71, status:'success'},
+  {file:'garanti_nisan.csv', bank:'Garanti Bankası', date:'08.04.2025', count:83, matched:68, status:'success'},
+  {file:'ziraat_mart.csv',   bank:'Ziraat Bankası',  date:'05.03.2025', count:79, matched:62, status:'warning'},
+];
+
+function rnd(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+function rndId() { return Math.random().toString(36).slice(2,8).toUpperCase(); }
+
+function initData() {
+  for (let i=1; i<=94; i++) {
+    const fn = rnd(FIRST_NAMES), ln = rnd(LAST_NAMES);
+    const statusIdx = Math.floor(Math.random()*STATUSES.length);
+    const status = STATUSES[statusIdx];
+    members.push({
+      id: i,
+      no: `UY-${String(i).padStart(3,'0')}`,
+      name: fn+' '+ln,
+      phone: '+90 5'+Math.floor(10+Math.random()*89)+' '+Math.floor(100+Math.random()*899)+' '+Math.floor(10+Math.random()*89)+' '+Math.floor(10+Math.random()*89),
+      email: fn.toLowerCase().replace('ı','i').replace('ş','s').replace('ğ','g').replace('ü','u').replace('ö','o').replace('ç','c')+'.'
+           + ln.toLowerCase().replace('ı','i').replace('ş','s').replace('ğ','g').replace('ü','u').replace('ö','o').replace('ç','c')
+           +'@mail.com',
+      fee: 500,
+      status: status,
+      debt: status==='paid'?0 : status==='partial'?250 : 500*(Math.floor(Math.random()*3)+1),
+      joinDate: '01.0'+(Math.floor(Math.random()*9)+1)+'.202'+(Math.floor(Math.random()*5)+0),
+    });
+  }
+
+  // payments
+  members.filter(m=>m.status==='paid'||m.status==='partial').forEach(m=>{
+    const d = new Date(2025,4,Math.floor(1+Math.random()*15));
+    payments.push({
+      id:'TXN-'+rndId(),
+      member: m.name,
+      amount: m.status==='paid'?500:250,
+      period:'Mayıs 2025',
+      channel: rnd(CHANNELS),
+      ref: 'REF'+Math.floor(100000+Math.random()*900000),
+      date: d.getDate().toString().padStart(2,'0')+'.'+(d.getMonth()+1).toString().padStart(2,'0')+'.2025',
+      status:'Tamamlandı'
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════
+function renderDashboard() {
+  // Monthly chart
+  const data = [28000,31000,29500,33000,35500,0,0,0,0,0,0,0];
+  const max = Math.max(...data.filter(x=>x>0));
+  const container = document.getElementById('monthly-chart');
+  container.innerHTML = '';
+  data.forEach((v,i)=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'month-bar-wrap';
+    const bar = document.createElement('div');
+    bar.className = 'month-bar';
+    const h = v>0 ? Math.round((v/max)*100) : 4;
+    bar.style.height = h+'px';
+    bar.style.opacity = v>0?'0.85':'0.15';
+    bar.title = v>0?'₺'+v.toLocaleString('tr-TR'):'—';
+    const lbl = document.createElement('div');
+    lbl.className = 'month-label';
+    lbl.textContent = MONTHS[i];
+    wrap.appendChild(bar);
+    wrap.appendChild(lbl);
+    container.appendChild(wrap);
+  });
+
+  // Recent payments
+  const tbody = document.getElementById('recent-payments');
+  const recent = payments.slice(-8).reverse();
+  tbody.innerHTML = recent.map(p=>`
+    <tr>
+      <td><strong>${p.member}</strong></td>
+      <td style="font-family:'DM Mono',monospace">₺${p.amount.toLocaleString('tr-TR')}</td>
+      <td>${p.period}</td>
+      <td><span class="badge badge-blue">${p.channel}</span></td>
+      <td>${p.date}</td>
+      <td><span class="badge badge-green">✓ ${p.status}</span></td>
+    </tr>`).join('');
+}
+
+function renderMembers() {
+  const tbody = document.getElementById('members-table');
+  tbody.innerHTML = members.map(m=>`
+    <tr>
+      <td style="color:var(--text3);font-size:11px">${m.no}</td>
+      <td><strong style="cursor:pointer;color:var(--accent)" onclick="showMemberDetail(${m.id})">${m.name}</strong></td>
+      <td style="color:var(--text2)">${m.phone}</td>
+      <td style="color:var(--text2);font-size:12px">${m.email}</td>
+      <td style="font-family:'DM Mono',monospace">₺${m.fee.toLocaleString('tr-TR')}</td>
+      <td>${statusBadge(m.status)}</td>
+      <td style="font-family:'DM Mono',monospace;color:${m.debt>0?'var(--red)':'var(--green)'}">${m.debt>0?'₺'+m.debt.toLocaleString('tr-TR'):'—'}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          ${m.debt>0?`<button class="btn btn-secondary btn-sm" onclick="quickNotify(${m.id})">📨</button>`:''}
+          <button class="btn btn-secondary btn-sm" onclick="showMemberDetail(${m.id})">👁</button>
+        </div>
+      </td>
+    </tr>`).join('');
+
+  // populate payment member select
+  const sel = document.getElementById('pay-member');
+  sel.innerHTML = '<option value="">Üye seçin...</option>'+members.map(m=>`<option value="${m.id}">${m.no} — ${m.name}</option>`).join('');
+}
+
+function statusBadge(s) {
+  if(s==='paid') return '<span class="badge badge-green">✓ Ödedi</span>';
+  if(s==='partial') return '<span class="badge badge-amber">⚠ Kısmi</span>';
+  return '<span class="badge badge-red">✗ Ödemedi</span>';
+}
+
+function renderPayments() {
+  const tbody = document.getElementById('payments-table');
+  tbody.innerHTML = payments.map(p=>`
+    <tr>
+      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)">${p.id}</td>
+      <td><strong>${p.member}</strong></td>
+      <td style="font-family:'DM Mono',monospace">₺${p.amount.toLocaleString('tr-TR')}</td>
+      <td>${p.period}</td>
+      <td><span class="badge badge-blue">${p.channel}</span></td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text3)">${p.ref}</td>
+      <td>${p.date}</td>
+      <td><span class="badge badge-green">✓ ${p.status}</span></td>
+    </tr>`).join('');
+}
+
+function renderNotifications() {
+  const unpaid = members.filter(m=>m.status!=='paid');
+  const tbody = document.getElementById('notif-table');
+  const delays = [5,8,3,12,7,2,15,4,9,6,11,1,13,3,8,5,10,2,7,4,14,6,9];
+  tbody.innerHTML = unpaid.slice(0,20).map((m,i)=>`
+    <tr>
+      <td><input type="checkbox" class="member-cb" value="${m.id}"></td>
+      <td><strong>${m.name}</strong><br><span style="font-size:11px;color:var(--text3)">${m.no}</span></td>
+      <td><span class="badge ${delays[i]>7?'badge-red':'badge-amber'}">${delays[i]} gün</span></td>
+      <td style="font-family:'DM Mono',monospace;color:var(--red)">₺${m.debt.toLocaleString('tr-TR')}</td>
+      <td style="font-size:12px;color:var(--text3)">${i%4===0?'Hiç gönderilmedi':i%3===0?'7 gün önce':'14 gün önce'}</td>
+      <td style="font-size:12px;color:var(--text2)">${m.email}</td>
+      <td><button class="btn btn-primary btn-sm" onclick="quickNotify(${m.id})">Gönder</button></td>
+    </tr>`).join('');
+
+  // auto rules
+  const rules = [
+    {label:'1. Hatırlatma', desc:'Ödeme gününden 3 gün önce', channel:'E-posta', active:true},
+    {label:'2. Hatırlatma', desc:'Vadesi geçtikten 3 gün sonra', channel:'E-posta + SMS', active:true},
+    {label:'3. Hatırlatma', desc:'Vadesi geçtikten 10 gün sonra', channel:'E-posta + WhatsApp', active:false},
+    {label:'Borç Bildirimi', desc:'Vadesi geçtikten 30 gün sonra', channel:'E-posta + SMS + Telefon', active:false},
+  ];
+  document.getElementById('auto-rules').innerHTML = rules.map(r=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+      <span style="font-size:16px">${r.active?'🟢':'⚫'}</span>
+      <div style="flex:1">
+        <strong style="font-size:13px">${r.label}</strong>
+        <span style="color:var(--text2);font-size:12px;margin-left:8px">${r.desc}</span>
+      </div>
+      <span class="badge badge-blue">${r.channel}</span>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">
+        <input type="checkbox" ${r.active?'checked':''}>
+        ${r.active?'Aktif':'Pasif'}
+      </label>
+    </div>`).join('');
+}
+
+function renderReportChart() {
+  const data = [28000,31000,29500,33000,35500,0,0,0,0,0,0,0];
+  const labels = MONTHS;
+  const max = 47000;
+  const container = document.getElementById('report-chart');
+  const lblRow = document.getElementById('report-labels');
+  container.innerHTML=''; lblRow.innerHTML='';
+  data.forEach((v,i)=>{
+    const bar = document.createElement('div');
+    bar.style.cssText = `flex:1;background:${v>0?'var(--accent)':'var(--border)'};opacity:${v>0?0.8:0.3};border-radius:4px 4px 0 0;height:${v>0?Math.round((v/max)*140):4}px;cursor:pointer;transition:opacity 0.15s`;
+    bar.title = v>0?labels[i]+': ₺'+v.toLocaleString('tr-TR'):labels[i]+': —';
+    bar.onmouseenter=()=>bar.style.opacity=1;
+    bar.onmouseleave=()=>bar.style.opacity=v>0?0.8:0.3;
+    container.appendChild(bar);
+    const lbl = document.createElement('div');
+    lbl.style.cssText='flex:1;font-size:10px;color:var(--text3);text-align:center';
+    lbl.textContent = labels[i];
+    lblRow.appendChild(lbl);
+  });
+}
+
+function renderImportHistory() {
+  document.getElementById('import-history-table').innerHTML = importHistory.map(h=>`
+    <tr>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${h.file}</td>
+      <td>${h.bank}</td>
+      <td>${h.date}</td>
+      <td>${h.count}</td>
+      <td><strong style="color:var(--green)">${h.matched}</strong></td>
+      <td><span class="badge ${h.status==='success'?'badge-green':'badge-amber'}">${h.status==='success'?'✓ Başarılı':'⚠ Uyarı'}</span></td>
+    </tr>`).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════
+function filterMembers(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('#members-table tr').forEach(row=>{
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function filterByStatus(s) {
+  document.querySelectorAll('#members-table tr').forEach(row=>{
+    if(!s) { row.style.display=''; return; }
+    const has = row.textContent.includes(s==='paid'?'Ödedi':s==='partial'?'Kısmi':'Ödemedi');
+    row.style.display = has ? '' : 'none';
+  });
+}
+
+function toggleAll(cb) {
+  document.querySelectorAll('.member-cb').forEach(c=>c.checked=cb.checked);
+}
+
+function addMember() {
+  const name = document.getElementById('new-name').value.trim();
+  if(!name){alert('Ad Soyad zorunludur.');return;}
+  const id = members.length+1;
+  members.push({
+    id, no:'UY-'+String(id).padStart(3,'0'),
+    name, phone: document.getElementById('new-phone').value||'—',
+    email: document.getElementById('new-email').value||'—',
+    fee: parseInt(document.getElementById('new-fee').value)||500,
+    status:'unpaid', debt:500,
+    joinDate: new Date().toLocaleDateString('tr-TR')
+  });
+  closeModal('add-member-modal');
+  renderMembers();
+  showToast('Üye başarıyla eklendi ✓');
+}
+
+function addPayment() {
+  const mid = parseInt(document.getElementById('pay-member').value);
+  if(!mid){alert('Üye seçin.');return;}
+  const m = members.find(x=>x.id===mid);
+  const amount = parseInt(document.getElementById('pay-amount').value)||500;
+  payments.push({
+    id:'TXN-'+rndId(), member:m.name, amount,
+    period: document.getElementById('pay-period').value,
+    channel: document.getElementById('pay-channel').value,
+    ref: document.getElementById('pay-ref').value||'—',
+    date: new Date().toLocaleDateString('tr-TR'),
+    status:'Tamamlandı'
+  });
+  m.debt = Math.max(0, m.debt - amount);
+  if(m.debt===0) m.status='paid';
+  else if(m.debt<m.fee) m.status='partial';
+  closeModal('add-payment-modal');
+  renderMembers(); renderPayments(); renderDashboard();
+  showToast('Ödeme kaydedildi ✓');
+}
+
+function showMemberDetail(id) {
+  const m = members.find(x=>x.id===id);
+  document.getElementById('detail-name').textContent = m.name;
+  const mPayments = payments.filter(p=>p.member===m.name);
+  document.getElementById('detail-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+      <div><div style="font-size:11px;color:var(--text3)">Üye No</div><div style="font-weight:600;margin-top:2px">${m.no}</div></div>
+      <div><div style="font-size:11px;color:var(--text3)">Durum</div><div style="margin-top:2px">${statusBadge(m.status)}</div></div>
+      <div><div style="font-size:11px;color:var(--text3)">Telefon</div><div style="margin-top:2px">${m.phone}</div></div>
+      <div><div style="font-size:11px;color:var(--text3)">E-posta</div><div style="margin-top:2px;font-size:12px">${m.email}</div></div>
+      <div><div style="font-size:11px;color:var(--text3)">Aylık Aidat</div><div style="font-family:'DM Mono',monospace;font-weight:600;margin-top:2px">₺${m.fee.toLocaleString('tr-TR')}</div></div>
+      <div><div style="font-size:11px;color:var(--text3)">Toplam Borç</div><div style="font-family:'DM Mono',monospace;font-weight:600;color:var(--red);margin-top:2px">${m.debt>0?'₺'+m.debt.toLocaleString('tr-TR'):'Yok'}</div></div>
+    </div>
+    <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text2)">ÖDEME GEÇMİŞİ</div>
+    ${mPayments.length===0?'<p style="color:var(--text3);font-size:13px">Henüz ödeme kaydı yok.</p>':
+      '<div style="display:flex;flex-direction:column;gap:6px">'+mPayments.map(p=>`
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
+          <span style="font-size:12px">${p.date} — ${p.period}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:600;color:var(--green)">+₺${p.amount.toLocaleString('tr-TR')}</span>
+        </div>`).join('')+'</div>'}`;
+  openModal('member-detail-modal');
+}
+
+function quickNotify(id) {
+  const m = members.find(x=>x.id===id);
+  showToast(`📨 ${m.name} kişisine bildirim gönderildi`);
+}
+
+function sendBulkNotification() {
+  const checked = document.querySelectorAll('.member-cb:checked').length;
+  if(checked===0){showToast('Lütfen en az bir üye seçin','warn');return;}
+  showToast(`📨 ${checked} üyeye toplu bildirim gönderildi`);
+  document.getElementById('notif-badge').textContent = Math.max(0, parseInt(document.getElementById('notif-badge').textContent)-checked);
+}
+
+function syncGoogleSheets() {
+  showToast('🔄 Google Sheets senkronize edildi');
+}
+
+function exportMembers() {
+  showToast('📥 Excel dosyası indirildi');
+}
+
+function exportPDF() {
+  showToast('📄 PDF raporu indirildi');
+}
+
+// ═══════════════════════════════════════════════════
+// BANK CSV IMPORT
+// ═══════════════════════════════════════════════════
+function handleFileSelect(input) {
+  if(!input.files.length) return;
+  processFile(input.files[0]);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if(f) processFile(f);
+}
+
+function processFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if(!['csv','xlsx','xls'].includes(ext)){showToast('Desteklenmeyen format','warn');return;}
+  setTimeout(()=>{
+    document.getElementById('import-preview').style.display='block';
+    document.getElementById('import-summary').innerHTML =
+      `<strong>${file.name}</strong> yüklendi — ${file.size>1024?Math.round(file.size/1024)+'KB':file.size+' B'} — Format otomatik tanındı`;
+    const thead = `<thead><tr>${['Tarih','Açıklama','Alacak (₺)','Borç (₺)','Referans'].map(h=>`<th>${h}</th>`).join('')}</tr></thead>`;
+    const sampleRows = [
+      ['05.05.2025','HAVALE/AHMET YILMAZ/AIDAT','500,00','—','REF123456'],
+      ['05.05.2025','EFT/MEHMET KAYA/MAYIS AIDATI','500,00','—','REF123457'],
+      ['06.05.2025','HAVALE/FATMA DEMİR','500,00','—','REF123458'],
+      ['07.05.2025','EFT/ALİ ŞAHİN','250,00','—','REF123459'],
+      ['07.05.2025','HAVALE/ZEYNEP ÇELİK/AIDAT MAYS','500,00','—','REF123460'],
+    ];
+    const tbody = `<tbody>${sampleRows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>`;
+    document.getElementById('preview-table').innerHTML = thead+tbody;
+  },400);
+}
+
+function processImport() {
+  document.getElementById('import-preview').style.display='none';
+  showToast('✅ Banka ekstresi içe aktarıldı — 71 eşleşme bulundu');
+  renderMembers(); renderDashboard();
+}
+
+function cancelImport() {
+  document.getElementById('import-preview').style.display='none';
+  document.getElementById('csv-input').value='';
+}
+
+// ═══════════════════════════════════════════════════
+// BANK TABS
+// ═══════════════════════════════════════════════════
+function switchBankTab(id, el) {
+  document.querySelectorAll('#bank-tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['upload','history','mapping'].forEach(t=>{
+    const el2 = document.getElementById('bank-'+t);
+    if(el2) el2.style.display = t===id?'block':'none';
+  });
+  if(id==='history') renderImportHistory();
+}
+
+// ═══════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
+});
+
+// ═══════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════
+function showToast(msg, type='success') {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:24px;right:24px;background:${type==='warn'?'var(--amber)':'var(--text)'};color:#fff;padding:12px 18px;border-radius:8px;font-size:13px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2);animation:slideIn .2s ease`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 3000);
+}
+const style = document.createElement('style');
+style.textContent = '@keyframes slideIn{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}';
+document.head.appendChild(style);
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+initData();
+renderDashboard();
+renderMembers();
+renderPayments();
+renderNotifications();
+renderReportChart();
+renderImportHistory();
+
+// Set today's date on forms
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('new-date').value = today;
+document.getElementById('pay-date').value = today;
+</script>
+</body>
+</html>
